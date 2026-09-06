@@ -86,7 +86,7 @@
   <!-- evolve return arrow -->
   <path d="M740,370 L740,412 L210,412 L210,356" stroke="#b5541c" stroke-width="1.4" fill="none" stroke-dasharray="6,4" marker-end="url(#arrd)"/>
   <text x="475" y="404" font-size="11.5" fill="#b5541c" text-anchor="middle" font-weight="bold">evolve</text>
-  <text x="475" y="428" font-size="10.5" fill="#b5541c" text-anchor="middle">the only arrow from existence back to essence — legitimate only under the seven conditions of §6.6</text>
+  <text x="475" y="428" font-size="10.5" fill="#b5541c" text-anchor="middle">use feedback to update future configurations; evaluate the new version against the old (§6.6)</text>
 
   <!-- top arrow: essence precedes existence -->
   <path d="M210,30 L740,30" stroke="#333" stroke-width="1" marker-end="url(#arr)"/>

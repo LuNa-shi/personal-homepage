@@ -64,7 +64,7 @@
   <text x="480" y="358" font-size="15" font-weight="bold" fill="#b5541c" text-anchor="middle">evolve</text>
   <text x="480" y="378" font-size="10.5" fill="#b5541c" text-anchor="middle">across episodes · revise generation rules, policies, capacity</text>
   <text x="700" y="332" font-size="10.5" fill="#b5541c" text-anchor="middle">from accumulated trajectories</text>
-  <text x="240" y="332" font-size="10.5" fill="#b5541c" text-anchor="middle">gated by the seven conditions of §6.6</text>
+  <text x="240" y="332" font-size="10.5" fill="#b5541c" text-anchor="middle">evaluate updates with the checks in §6.6</text>
 
   <!-- title strip -->
   <text x="40" y="36" font-size="13" font-weight="bold" fill="#333" letter-spacing="1.5">FIVE OPERATORS</text>

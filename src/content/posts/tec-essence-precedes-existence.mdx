@@ -1,0 +1,440 @@
+---
+title: 'Essence Precedes Existence: A Task–Environment–Capacity View of Multi-Agent Systems'
+date: '2026-09-05T12:00:00Z'
+overview: >-
+  TEC describes an agent as a task bound to a capacity through a view of an environment,
+  and uses this framework to examine coordination, context, verification, and self-improvement.
+lang: en
+canonicalSlug: tec-essence-precedes-existence
+tags:
+  - multi-agent-systems
+  - tec
+categories:
+  - agents
+  - research
+math: true
+toc: true
+draft: false
+---
+
+import TecFigure from '../../components/blog/TecFigure.astro';
+
+_Claims are marked [E] when established in cited work, [D] when derived here, and [C] when conjectural._
+
+---
+
+## TL;DR
+
+Sartre said that for human beings existence precedes essence, and that the exception is the artifact: a paper-knife is designed for a use before it is made. An agent is a paper-knife. Its purpose (a task) and its design (a capacity) exist before it does; its existence is a runtime in an environment. Taking that seriously yields a framework, TEC, with three primitives and five operators, and most of what the field treats as further primitives—topology, tools, sub-agents, channels, memory—turns out to be composed of the three. Seven falsifiable propositions follow. Among them: independent identical agents match repeated sampling, while multi-round debate requires a baseline that reproduces its per-call contexts and aggregation; parallelism is bounded by the task's critical path, not by agent count; agent societies without tasks are a category error; and the one place where existence may legitimately rewrite essence—a system revising its own capacity from its own trajectories—is the place that needs the strictest discipline, because it is where "self-improvement" is most often claimed and least often shown.
+
+---
+
+## 1. We cannot say why multi-agent systems fail
+
+Three years of frameworks—CAMEL's role-play (Li et al., 2023), MetaGPT's standard operating procedures (Hong et al., 2023), ChatDev's virtual company (Qian et al., 2023), AutoGen's programmable conversations (Wu et al., 2023), and the orchestrator-plus-specialists pattern now shipping in every coding assistant—have produced a body of negative results that is, by now, the most solid empirical knowledge the field has. Cemri et al. (2025) annotated over 1,600 traces from seven open-source systems and found failure rates between 41% and 87%, in fourteen modes across three families: the task was under-specified, the agents disagreed about what they were doing, or nobody checked the answer. Kapoor et al. (2024) showed that accuracy-only leaderboards rewarded agents that simpler and cheaper baselines dominated. Multi-agent debate often fails to outperform simpler single-agent baselines despite using more inference compute (Zhang et al., 2025g), and a single agent with a good prompt matches the best discussion protocols (Wang et al., 2024a). Practitioners split on the same line: Anthropic reports that parallel sub-agents pay for themselves on breadth-first research (Anthropic, 2025a); Cognition advises against multi-agent designs for most software work because fragmented context yields incoherent output (Cognition, 2025).
+
+None of this is evidence against multi-agent systems. It is evidence that we describe them in the wrong vocabulary. We talk about roles, orchestrators, planners and critics—the _forms_ of organization—and the forms say nothing about the structure of the task or about who can see what. The older field of distributed AI never made this mistake: the contract net matched task structure to node capability (Smith, 1980); the blackboard was a design for which knowledge source sees which partial result (Erman et al., 1980); the Dec-POMDP was a proof that coordination cost is a function of information fragmentation, NEXP-complete in the worst case (Bernstein et al., 2002). Language models made agents cheap and, in the process, severed that lineage. What follows is an attempt to restore it, starting from a claim about what an agent _is_.
+
+---
+
+## 2. The spine: an agent's essence precedes its existence
+
+In _Existentialism Is a Humanism_, Sartre distinguished two kinds of thing. A paper-knife is conceived by an artisan who has its use and its method of manufacture in mind before it exists; for artifacts, essence precedes existence. A human being, having no maker with a plan, exists first and becomes something through choices; for people, existence precedes essence (Sartre, 1946). The distinction is exactly the one the agent literature has blurred. An agent is instantiated for a purpose, from a design, by a maker. It is an artifact, and its essence—what it is for and what it is made of—is fixed before it runs.
+
+In the framework's terms: an agent's essence is a **task** together with a **capacity**; its existence is a **runtime** in an **environment**. The triple (task, environment, capacity) is not one way among many of describing an agent; it is what an agent is. [D] Figure 1 is the whole framework. The rest of this essay is commentary on it.
+
+<TecFigure
+  mode="triple"
+  fallback="/assets/img/blog/tec-essence-precedes-existence/fig1_triple.svg"
+  alt="Task and capacity define a runtime within six layers of environment."
+/>
+
+_Figure 1. Select Task, Environment or Capacity to inspect its contribution to a runtime. Task and capacity define the artifact; a view bounds its environment, and a context policy assembles the active input. Working state and active context are distinct. The full-size static diagram also shows the gated evolution feedback path discussed in Section 6.6._
+
+Four things follow at once, and they organize what comes after.
+
+First, "agent" is not a primitive. It is the name we give to a capacity bound to a task through a view of an environment. Any account of multi-agent systems that treats agents as atoms and asks how they should interact has started one level too high. Section 4 shows that topology, tools, sub-agents, communication and memory all dissolve into the three primitives when one starts at the right level.
+
+Second, the task is not an input to the agent but the reason for its existence, so an ill-specified task yields an ill-specified agent. The "specification" family in Cemri et al.'s taxonomy is not a class of bugs; it is what happens when an artifact is manufactured without a design.
+
+Third, a collective of agents that exists without a task—an "agent society" in the sense of social simulation—is a collective of artifacts built as if they were people. It can be interesting for other reasons, but it cannot be expected to solve anything, and the record confirms that it does not. A sharper version of the same point, in Section 6.1: if the essences are identical and the environment presents them identically, independent calls are exchangeable; later interaction must be compared with a baseline that reproduces each call's context.
+
+Fourth, and most delicately, there is one operation in which the arrow reverses: when a system modifies its own capacity on the basis of its own trajectories, existence is being allowed to rewrite essence. This is precisely what "self-improving" agents claim to do. The claim is legitimate, but the reversal has to be earned, and Section 6.6 says how.
+
+---
+
+## 3. The framework in one page
+
+### 3.1 Task: the reason an agent exists
+
+In current practice a task is a string. A string cannot say when the work is done, what it depends on, or what it may cost, and so it cannot be parallelized, handed off, verified or paid for. We define a task instead as an object with a _goal_; _input_ and _output contracts_; an _acceptance predicate_ (a verifier, binary or graded); a _dependency set_ naming the tasks whose outputs it needs; a _budget_ in tokens, time and money; _provenance_; a _lifecycle status_; and a _failure attribution_ field. Three components carry the theoretical weight. The verifier makes decomposition meaningful—a subtask without one is a wish. The dependency set fixes the critical path and hence the maximum useful parallelism. The budget makes cost an object of optimization. The rest exist so that credit assignment has something to attach to. A _goal_ is a predicate over world states; a task is a goal plus contracts and resources; a persistent agent carries a goal across many tasks—the distinction hierarchical task-network planning draws between abstract goals and primitive tasks (Erol et al., 1994).
+
+### 3.2 Environment: the medium in which a runtime exists
+
+Here TEC departs most from current usage, and the departure is one of resolution. "Context" and "memory" are usually two things; TEC distinguishes six layers. The _global state_ is everything in the system's world: repository, file system, services, artifact and trajectory stores, shared memory. A runtime's _view_ is the subset it is permitted and budgeted to read; this is where privacy and permission live. Its _observation_ is what it actually reads. Its _external working state_ is the set of objects that shape its behavior without entering the model's token input—variables in a persistent kernel, indexes, handles to child runtimes. Its _active context_ is the sequence of tokens serialized into one model call. And the _context policy_ is the set of rules that select from the view, index, compress, disclose progressively, reconcile conflicts and evict.
+
+The distinction between working state and active context is the important one. It was implicit in every agent that ever wrote to a file and became explicit when recursive language models made the prompt a variable in a REPL that the model inspects programmatically instead of reading whole (Zhang et al., 2025a). Once drawn, it unifies several phenomena: the positional degradation of Liu et al. (2023) is the cost of a naive policy; the "context collapse" under iterative rewriting reported by Zhang et al. (2025b) is a failed reconciliation rule; and compaction in long-running agents, which most systems treat as irreversible loss, becomes a re-projection from working state to active context—lossless if the working state survives.
+
+### 3.3 Capacity: what an agent is made of
+
+A capacity is a model together with the prompts that condition it, the tools it may call, the skills it has accumulated, the memory it carries between episodes, and the specification that fixes how these combine. TEC adds attributes that no current system records: a _task signature_ naming the class of tasks it suits; _cost_ and _latency_; a _version_; an empirical _track record_; and a _failure boundary_. [D] These attributes separate a capacity _store_—a directory of skills—from a capability _system_ on which a matching operator could reason. Voyager's skill library (Wang et al., 2023) is a store; nothing in the literature is yet a system.
+
+### 3.4 Agents as derived objects
+
+With the primitives in hand, the vocabulary of agents falls out. A _specification_ is a capacity considered apart from execution. A _runtime_ is a capacity bound to a task through a view: an instantiated triple. A capacity is _expert_ when it has a validated track record on a signature and _general_ otherwise; general capacities are cheap and are what agent-as-a-tool patterns instantiate on demand. A runtime is _persistent_ when it has a stable identity, its private state continues across episodes, and it can be re-instantiated after its process dies; it is _ephemeral_ when discarded after use. Persistence is a property of the essence—the specification and its accumulated state—not of the existence; what persists is the design, and the runtime is re-made from it. This is the actor model's notion of an entity that outlives any thread executing it (Hewitt et al., 1973).
+
+### 3.5 Operators and metrics
+
+A system at any moment is a set of triples plus the global state, and it moves through five operators (Figure 2): _generate_ creates tasks; _match_ binds tasks to capacities; _assemble_ builds active context from a view under the policy; _verify_ applies the acceptance predicate and gates release into the global state; _evolve_ revises capacities, environment policies and task-generation rules from accumulated trajectories. [D] A system is judged on a Pareto frontier over _efficiency_ (wall-clock), _quality_ (probability of verified success within budget) and _cost_ (tokens or money), in the sense argued by Kapoor et al. (2024), with reliability across repeated attempts (the $\mathrm{pass}^{k}$ of Yao et al., 2024) as a fourth axis.
+
+<TecFigure
+  mode="operators"
+  fallback="/assets/img/blog/tec-essence-precedes-existence/fig2_operators.svg"
+  alt="Five TEC operators: generate, match, assemble, verify, and evolve."
+/>
+
+_Figure 2. Step through generate, match, assemble and verify within one episode, then inspect evolve across episodes. The validation gate represents the seven proposed conditions in Section 6.6; it does not record an actual experiment. An architecture assigns authority over these operators._
+
+The reason to state the dynamics this way is that every architecture in the literature becomes a policy over these five operators, and architectures can be compared by asking, for each operator, who holds the authority to invoke it. Appendix A places the main families on exactly that grid.
+
+---
+
+## 4. Why three primitives are enough
+
+The test of a framework is not whether it can describe a system but whether the things it does not name turn out to be composed of the things it does. Multi-agent discourse has a large vocabulary of apparent primitives—topology, orchestrator, tool, sub-agent, channel, memory, prompt. Each dissolves.
+
+### 4.1 Topology is a projection
+
+The most instructive case is topology, because the field has treated it as the main object of design and even of search. Ask what a topology actually fixes. A fixed workflow such as MetaGPT's pipeline fixes two things: a decomposition of the task into stages with dependencies, and a rule about which stage's artifacts each subsequent stage may read. The first is the task's dependency set; the second is the environment's visibility function. An orchestrator such as Magentic-One's (Fourney et al., 2024) is a capacity that holds the authority to generate, match and verify. A critic is a capacity that holds verification authority. A "graph of agents" in GPTSwarm (Zhuge et al., 2024) is a dependency structure plus a visibility structure whose edges and node prompts are optimized jointly. Topology, in short, is the shadow cast on the three primitives by a policy over the operators: which structure the task has, which views the environment grants, and which capacities hold which authority (Figure 3). [D] It is not a thing; it is a projection.
+
+<TecFigure
+  mode="topology"
+  fallback="/assets/img/blog/tec-essence-precedes-existence/fig3_projection.svg"
+  alt="Task dependencies, environment visibility, and capacity authority project into agent topologies."
+/>
+
+_Figure 3. Switch between a pipeline, parallel review and specialist review. The latter two have the same handoff graph but different views and capacities: topology alone omits those details. The full-size static diagram gives additional examples of topology as a projection._
+
+This has a sharp consequence for the topology-search literature—DyLAN (Liu et al., 2023b), GPTSwarm, ADAS (Hu et al., 2024), AFlow (Zhang et al., 2025c), MaAS (Zhang et al., 2025d), AgentSquare (Shang et al., 2024). These searches typically work with benchmark tasks and selected base models while varying prompts, workflows or edges. In TEC terms, changing a prompt can change capacity, and changing an edge can change visibility or task dependencies. The primitives therefore are not all fixed. The useful distinction is between searching those settings inside a benchmark-defined design space and changing the task contracts, available observations or capability lifecycle that define that space. Whether the resulting gains transfer to new tasks is an empirical question.
+
+### 4.2 Tools and sub-agents are one thing seen from two levels
+
+A sub-agent invoked as a tool is, from the caller's side, an entry in its tool set—part of its capacity. From the system's side it is an ephemeral runtime with its own triple. Both descriptions are correct; the framework is level-relative in exactly this way: what is a capacity at one level is a runtime at the level below. [D] Recursive language models make this literal—the child is a function call that instantiates a full runtime—and the distinction between "agent as tool" and "agent as colleague" is simply whether the child's essence is retained after its existence ends.
+
+### 4.3 Communication is a write to shared state within someone's view
+
+There is no communication primitive. To communicate is to write to the global state at a location that lies in another runtime's view. Direct messaging is the case where the medium is a queue and the view is one-to-one; file-based communication is the case where a "private" message is a file only one other view includes. The blackboard (Erman et al., 1980), the tuple space (Gelernter, 1985) and stigmergy (Theraulaz and Bonabeau, 1999) are environment-mediated communication with structured, associative and unaddressed stores; learned communication in multi-agent RL (Sukhbaatar et al., 2016; Foerster et al., 2016; Das et al., 2019) is learning a store and a visibility function jointly. The consequence, in Section 6.5, is that "efficient communication" reduces to the joint design of the store and the views.
+
+### 4.4 Memory sits on a boundary, and the boundary is mutation authority
+
+Memory seems to belong to two primitives at once: it travels with an agent (capacity) and it is shared (environment). Prompts have a similar ambiguity with context. The resolution is to classify by _who may modify_, not by where the object sits. Within an episode, ordinary runtime writes modify environment state; capacity specifications change through evolve; generate creates task specifications. Task lifecycle status can still change as work proceeds and verification completes. Across episodes, evolve may revise the rules used to generate future tasks, rather than silently rewriting an active task's acceptance criteria. This is a proposed authority discipline, not a claim that all systems already enforce it. [D] A shared memory that runtimes write to is environment; a private skill file that only refinement touches is capacity; the same object changes layer when its write authority changes. A prompt is the part of the active context fixed by the specification; the rest is assembled by the policy. This also answers the objection that the framework's axes are not orthogonal: they are not orthogonal as _locations_, but they are as _authorities_.
+
+### 4.5 What is gained
+
+Four things. Agent count stops being a design variable; the questions become what structure the task has, which views the environment grants, and how diverse the capacities are. The negative results of Section 1 stop being puzzles and become predictions. Architectures become policies over operators and can be compared under controlled conditions rather than by name. And design acquires a rule: every runtime is created as a well-formed triple—a task with a verifier, a bounded view, and a capacity with a signature—or it is not created at all.
+
+---
+
+## 5. Where the framework comes from
+
+TEC is a synthesis; each part has a history in a field that studied coordination before language models did, and each lineage contributes one lesson. Distributed AI—the contract net (Smith, 1980), the blackboard (Erman et al., 1980; Nii, 1986), Linda (Gelernter, 1985), the Dec-POMDP result (Bernstein et al., 2002), multi-robot task allocation (Gerkey and Matarić, 2004)—contributed the object model and the lesson that organization was never studied apart from task and information structure. Organization theory and economics—Simon (1955), Galbraith (1974), Malone and Crowston (1994), Coase (1937), Williamson (1975), Wellman (1993)—contributed the demand-and-supply view and the lesson that the choice between planning and matching is a function of task uncertainty, dependency and communication cost. Ensemble theory and test-time compute—Krogh and Vedelsby (1995), Hong and Page (2004), self-consistency (Wang et al., 2023), pass@k (Chen et al., 2021), the repeated-sampling laws of Brown et al. (2024) and Snell et al. (2024)—contributed the lesson that homogeneous repetition is a known baseline that must be controlled alongside diversity and assembly policy. Evolutionary computation and continual learning—variation and selection (Holland, 1975), novelty and quality-diversity (Lehman and Stanley, 2011; Mouret and Clune, 2015), open-endedness (Wang et al., 2019; Hughes et al., 2024), forgetting and negative transfer (McCloskey and Cohen, 1989; Kirkpatrick et al., 2017; Pan and Yang, 2010)—contributed the lesson that improvement is a claim about the future and must be validated on tasks the update did not see. What TEC adds is only the assembly, around the specific properties of language-model agents: cheap instantiation, prompt-defined capacity, token-priced compute, and a context window that is at once the agent's memory, perception and cost.
+
+---
+
+## 6. What follows
+
+A framework earns its keep by yielding claims that could be false. Seven follow from TEC; each is stated with the observation that would refute it.
+
+### 6.1 Homogeneous collectives need a matched sampling baseline
+
+Two runtimes with the same capacity and the same active context sample from the same conditional distribution. If their randomness is independent, they produce the same candidate distribution as _k_ repeated calls to one model. A selector restricted to choosing one of those _k_ outputs cannot succeed unless at least one candidate is correct: its success is bounded by pass@_k_, the probability that the candidate set contains a correct answer. [D] This bound does not cover an aggregator that synthesizes or rewrites an answer. Such an aggregator may correct errors even when every candidate is wrong, and its additional computation must be included in the comparison.
+
+Debate changes the comparison because later calls condition on earlier outputs. A single runtime can simulate a homogeneous collective in distribution if it maintains each participant's state, reconstructs that participant's exact active context, and uses the same model, sampling settings, scheduling and aggregation policy for each call. Matching the conditional distribution at each call reproduces the joint distribution of the transcript and final output. [D] Simply appending every message to one growing context does not establish this equivalence. The simulator must also respect the same tools and observations; token costs must be measured, and sequential simulation does not preserve parallel wall-clock latency.
+
+This is a requirement for a strong baseline, not a proof that debate is useless. Self-conditioned computation can improve an answer without adding external observations. Huang et al. (2023) found substantial limitations in intrinsic self-correction on their reasoning tasks; Zhang et al. (2025g) found that evaluated debate methods often failed to outperform simpler baselines and that model heterogeneity improved their results. These findings motivate controlled comparisons, not a universal zero-gain ceiling. In TEC's terms, debate accumulates generated content in the environment; the value of that content is an empirical question.
+
+**Context diversity**, **capacity diversity** and **environmental accumulation** remain useful variables to test. Different observations, different models, and verified artifacts change the computation available to the system. So can a different assembly policy over earlier samples; its contribution should be measured rather than attributed to agent count. A simulator may keep participant state outside the active context and load only what each call needs, so no single window must hold the entire _k·r_-sample transcript. If it cannot reproduce those per-call contexts under the same resource limits, the comparison must report that constraint. The distributional claim would be refuted by a collective that differs from a simulator despite the same per-call conditional distributions, scheduling, observations and final aggregation; practical gains should instead be tested against explicit sample, token and latency budgets.
+
+---
+
+### 6.2 Parallelism is bounded by the task's critical path
+
+For a task whose dependency set has total work _W_ and critical-path length _L_, no allocation of runtimes finishes faster than _L_ or achieves speedup above _W/L_; beyond the number of runtimes that can be kept busy on parallel branches, adding more adds cost without reducing time, and if coordination is itself costly, adds time too. [D] This is Amdahl's (1967) serial fraction replaced by the critical path, with Brooks (1975) supplying the contention term. The logistic collaborative scaling law that Qian et al. (2024) found on networks of over a thousand agents, and the saturation Li et al. (2024) found in sampling-and-voting, are its empirical shape. Refuted by sustained speedup from added agents on a task whose critical path dominates its work.
+
+<TecFigure mode="parallel" />
+
+The schedule uses four one-unit tasks and assumes zero coordination overhead. In the fork-and-join case, a second worker reduces completion time from four units to three; more workers cannot shorten the remaining dependency chain. Real systems can incur additional communication and verification costs.
+
+### 6.3 The design object is the market, not the agent count
+
+If tasks are demand and capacities supply, the core operation is a matching that gives each open task the capacity most likely to satisfy its verifier within its budget, and what the designer writes are market rules: how capacities describe themselves, how tasks are announced and claimed, how results are evaluated, how capacities are promoted or retired. This is market-oriented programming (Wellman, 1993) with tokens as currency. TEC adds the transaction-cost conditional: decentralized matching wins when describing tasks and evaluating bids is cheap relative to the cost of a central planner holding the information needed to plan. [C] Since a language-model planner's information cost is the context it must carry, and large contexts degrade (6.4), markets should win on tasks with cheaply verifiable subtasks and global structure too large for one view, and planners where subtasks are hard to verify and global structure is compact. Cemri et al.'s finding that misalignment and verification dominate failures is what a market without contracts looks like. Refuted if decentralized claiming beats central planning on tasks with expensive verification and compact structure.
+
+### 6.4 Context policy has value, and more context is not more value
+
+Because active context is selected from a view by a policy, the policy has a measurable effect on quality that can go either way. Liu et al. (2023) on positional degradation, Zhang et al. (2025b) on collapse, and a large practitioner literature on distraction by irrelevant retrieval establish that an indiscriminate policy loses to a selective one. [E] TEC's addition is to name the policy as a design object and to conjecture that indexing, progressive disclosure and eviction may improve the Pareto frontier over concatenation on long-horizon task families where relevant information is sparse. [C] This is the information bottleneck (Tishby et al., 1999) with the target being the task's verifier. Refuted if concatenation matches a selective policy on the frontier when relevant information is a small fraction of the available state.
+
+### 6.5 Communication design reduces to environment design
+
+Given Section 4.3, the study of efficient inter-agent communication is the joint study of the shared store's structure and the visibility functions over it. [D] Whether agents need a messaging channel is the question of whether the store can be structured so that what each runtime needs lies in its view when it needs it; the design of a repository, a task board or a memory index is the design of a protocol. Refuted if a channel outperforms every structuring of the store with views held fixed—unlikely, since any message is representable as a store entry with a one-runtime view.
+
+### 6.6 Strict evolution: when existence may rewrite essence
+
+This is the proposition where the spine matters most. A system that modifies its own capacity from its own trajectories is letting existence rewrite essence, and the reversal is legitimate only under discipline. Seven conditions are necessary. The update has an explicit object. It is triggered by real trajectories and feedback. The changed state persists across tasks. It improves performance on **held-out** tasks that played no part in producing it. Its cost, latency, negative transfer, forgetting and regression are measured alongside its benefit. The parent is preserved so the change can be rolled back. And its causal contribution is shown by reset, removal, shuffle or replay. [D] The fourth is the continual-learning requirement that improvement generalize; the fifth the requirement to measure what it broke; the sixth and seventh are variation-and-selection and ablation.
+
+The force of the criteria is that most systems described as self-improving satisfy the first three and the sixth and fail the fourth, fifth and seventh, which are the ones that bear weight. A harness that rewrites its prompts after each episode and keeps them has changed; only if the changes help on tasks it has not seen, at a known cost, for isolable reasons, has it evolved. The Darwin Gödel Machine (Zhang et al., 2025e) comes closest—explicit object, archive, cross-benchmark transfer—and still does not report forgetting or negative transfer or isolate which self-modifications carried which gains. Without the discipline, letting existence rewrite essence produces drift, not development—an artifact quietly becoming something its maker did not design, with no way to tell whether it became better. Refuted, for a given system, by a demonstration satisfying all seven.
+
+### 6.7 Decentralized task generation, conditionally
+
+Finally, a conjecture. Letting executing runtimes generate verifiable subtasks from local evidence beats a central planner when the verifier for a generated subtask is cheap to construct, when local evidence is informative about global structure, and when redundancy among independently generated subtasks can be controlled. [C] Open-endedness research motivates it (Wang et al., 2019; Hughes et al., 2024); the discovery systems that already use generated subtasks—FunSearch (Romera-Paredes et al., 2024), the AI Scientist (Lu et al., 2024), the controlled idea-generation study of Si et al. (2024)—operate where the first condition holds strongly, which is consistent but not conclusive. In open mathematics, where the paths to subtasks are themselves unknown, a dedicated generation capacity is not optional, and the system's ceiling is set by the breadth and depth of what it can generate. Refuted if decentralized generation loses under all three conditions.
+
+---
+
+## 7. Limits of the framework
+
+**The primitives are not orthogonal as locations.** Task-generating capacities produce tasks; memory is shared and private at once; skills act on the environment they belong to. Section 4.4's move—classify by mutation authority—resolves the cases we have examined, but its consequences are not fully worked out, and it is the framework's first open theoretical problem.
+
+**Three regions fit poorly.** Social simulation—Generative Agents (Park et al., 2023) and descendants—is in TEC terms the most thorough study of an environment that exists (memory stream as view, reflection as policy), but it is organized around believability rather than task success; the framework can describe it and cannot evaluate it. Adversarial and mixed-motive settings assume agents whose essence is not the task they were assigned; TEC assumes cooperation and needs extension before it can speak there. And learning that changes model weights rather than harness state is an evolve operation on a different timescale that the framework does not yet distinguish.
+
+**Two assumptions are probably false.** That every runtime attempts its assigned task and reports honestly: multi-agent risk research shows this fails under injected instructions that propagate between runtimes and under correlated failures no single runtime would produce (Hammond et al., 2025). And that capacities are stationary, when models are replaced on a cadence of months and an update can invalidate every record attached to a prompt built for its predecessor; any empirical constant must be pinned to a model version.
+
+**Missing components.** No security predicate in the verifier or trust attribute in the capacity. No humans, who in practice generate tasks, act as capacities, and hold most verification authority. No temporal semantics—deadlines, concurrent writes, consistency guarantees. No organizational layer above the operators—no team, no role that persists across tasks—which the framework needs before it can say what a society is _for_. Verifiers taken as deterministic where they are probabilistic. Metrics that omit variance, safety and interpretability.
+
+And one limit that follows from the spine itself. Essence precedes existence for artifacts, and the framework is built on that. But the point of an evolving harness is that existence feeds back into essence, and a system that has undergone many such cycles under strict validation is, in a small way, becoming what it was not designed to be. The framework can say when a cycle is legitimate. It cannot yet say what the artifact is after a thousand of them, or whether the ontology still holds at the limit. That is not an objection so much as a horizon.
+
+---
+
+## 8. What to build
+
+Programmable harnesses have made the primitives available at runtime. The recursive-language-model design of Zhang, Kraska and Khattab (2025a) treats the prompt as a variable in a Python environment that the model inspects and recurses over; Prime Intellect's harness of that name (2026) makes a persistent kernel the model's sole tool, spawns children as full runtimes with their own kernels, persists the resulting tree, and keeps prompts, skills, memory and sub-agent specifications as state the agent may edit, with refinement from trajectories and rollback. Read through TEC this is nearly the full set of primitives, with a coordination medium that includes persistent kernel state.
+
+What such systems achieve is the _programmability_ of the primitives; what they lack is their _semantics_, _measurement_ and _evolution_. Tasks remain strings, without contracts or verifiers. The context policy is implicit in the model's choices. Capacities carry no signature, record or boundary. Refinement satisfies the first three evolution criteria and the sixth and none of the load-bearing three. The remedy is to fix the recursive call's interface to the triple itself—a task with acceptance criteria, a bounded view such as a repository or worktree, a capability with a signature—so that every child is born a well-formed artifact, and to organize the system around a persistent list of such triples rather than around agents messaging one another.
+
+On that substrate the experiments write themselves, and each controls a confound that has made prior comparisons uninterpretable. A homogeneous collective against a single runtime at matched samples and assembly policy, as the mandatory baseline (6.1). Views varied with capacities fixed, and capacities varied with views fixed, to locate the crossover where diversity beats sampling. Assembly policy varied on tasks with a known relevant-information fraction (6.4). Shared-memory write-back permitted or forbidden, with reset, removal, shuffle and replay to find which entries carried the gain. Refinement judged on a held-out suite fixed in advance, against its parent, at matched compute, with forgetting reported (6.6). Decentralized claiming against a central planner where verifier cost and local informativeness are dials (6.3, 6.7). Agent count swept on families with known work-to-critical-path ratios (6.2). Every result reported with reliability across attempts, and pinned to a model version.
+
+---
+
+## 9. Closing
+
+The claim of this essay is small and, we think, load-bearing. An agent is an artifact; its purpose and its design precede it; and so it is not a primitive but a task bound to a capacity through a view of an environment. Everything the field treats as an additional primitive is composed of those three, and once that is seen, the negative results of the last three years become predictions, the architectures become policies that can be compared under control, and the questions worth asking change: not how many agents and in what arrangement, but what structure the task has, what each runtime can see, how diverse the capacities are, who verifies, and whether the system can be shown—on tasks it has not seen, at a cost that is known, for reasons that can be isolated—to have become more than it was made. The framework is incomplete in ways we have tried to state precisely. Its incompleteness is the agenda.
+
+---
+
+## Appendix A. The literature, placed
+
+Table A1 places the main families on seven design questions derived from the primitives and operators in Section 3.5. Table A2 records a TEC reading of their evidence and remaining questions. Its judgments about saturation and open problems are the author's assessment of the cited work, not claims that no counterexample exists anywhere in the literature.
+
+**Table A1. Families of the literature on the seven questions.**
+
+| Family (examples)                                                                                               | Who generates tasks             | Context                              | Capacity                | Projection (topology)           | Persistence         | Who verifies             | What evolves               |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------ | ----------------------- | ------------------------------- | ------------------- | ------------------------ | -------------------------- |
+| Sub-agent-as-tool (coding assistants; Anthropic, 2025a; Magentic-One, Fourney et al., 2024)                     | Root runtime                    | Progressively disclosed              | Fixed                   | Fixed at design                 | Ephemeral children  | Root                     | Nothing                    |
+| Fixed workflow / role-play (MetaGPT; ChatDev; CAMEL; AutoGen)                                                   | Designer, at design time        | Partitioned by stage                 | Fixed                   | Fixed                           | Episode             | Designated stage or none | Nothing                    |
+| Debate / sampling-and-voting (Li et al., 2024; Zhang et al., 2025g)                                             | Designer                        | Shared, then cross-read              | Fixed, homogeneous      | Fixed                           | Ephemeral           | Vote                     | Nothing                    |
+| Topology search (DyLAN; GPTSwarm; ADAS; AFlow; MaAS; AgentSquare)                                               | Benchmark                       | Prompt                               | Prompts                 | Searched offline                | Ephemeral           | Benchmark metric         | Prompts and organization   |
+| Prompt optimization (DSPy, Khattab et al., 2023; OPRO, Yang et al., 2023; PromptBreeder, Fernando et al., 2023) | Benchmark                       | Prompt                               | Prompts                 | Single agent                    | Ephemeral           | Benchmark metric         | Prompts, on-distribution   |
+| Memory systems (MemGPT; A-MEM; Mem0; Agent Workflow Memory; ACE)                                                | External                        | Single agent; store structure varies | Fixed                   | Single agent                    | Cross-episode store | External                 | The store                  |
+| Dynamic-task discovery (FunSearch; AI Scientist)                                                                | Executing capacities            | Shared archive                       | Fixed                   | Fixed loop                      | Archive persists    | Fixed program verifier   | The archive                |
+| Self-modifying agents (Darwin Gödel Machine; continual harnesses)                                               | External benchmark              | Single agent                         | Dynamic                 | Single agent                    | Archive of parents  | Benchmark                | Code, prompts, skills      |
+| Programmable recursive harnesses (RLM, Zhang et al., 2025a; Prime Intellect, 2026)                              | Root runtime, at execution time | Externalized in kernel; progressive  | Dynamic (harness state) | Adaptive at runtime             | Persistent tree     | Root, informal           | Harness state, unvalidated |
+| Agent societies (Generative Agents, Park et al., 2023)                                                          | Nobody / the agents             | Per-agent memory stream              | Fixed                   | Emergent                        | Persistent          | Nobody                   | Memory                     |
+| Classical DAI (contract net; blackboard), for contrast                                                          | Manager node                    | Shared structured store              | Heterogeneous nodes     | Emergent from bids or scheduler | Persistent          | Manager / scheduler      | Nothing                    |
+
+**Table A2. What is validated, what is saturated, what is open.**
+
+| Region                                                            | Status                 | Evidence                                                                                                                                                      | Reading through TEC                                                                                                         |
+| ----------------------------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Decomposition at runtime                                          | Validated              | ReAct (Yao et al., 2022); Tree of Thoughts (Yao et al., 2023); Reflexion (Shinn et al., 2023)                                                                 | Generation became an operator the executing capacity can invoke                                                             |
+| Structured artifacts as handoff medium                            | Validated, conditional | MetaGPT (Hong et al., 2023)                                                                                                                                   | Works when the task matches the encoded dependency structure                                                                |
+| Interface and view in coding                                      | Validated              | SWE-agent (Yang et al., 2024); Agentless (Xia et al., 2024)                                                                                                   | With verifiers free, view and verifier determine the frontier; autonomy is not required                                     |
+| Persistent memory and store structure                             | Validated              | MemGPT (Packer et al., 2023); A-MEM (Xu et al., 2025); Mem0 (Chhikara et al., 2025); AWM (Wang et al., 2024c); ACE (Zhang et al., 2025b)                      | Store structure is a design variable; visibility across runtimes is not yet one                                             |
+| Tool use                                                          | Validated              | Toolformer (Schick et al., 2023); ToolLLM (Qin et al., 2023); Gorilla (Patil et al., 2023)                                                                    | Solved as capacity acquisition                                                                                              |
+| Heterogeneous capacity                                            | Validated              | Mixture-of-Agents (Wang et al., 2024d); heterogeneous debate (Zhang et al., 2025g)                                                                            | Capacity diversity, as 6.1 predicts                                                                                         |
+| Homogeneous scaling saturates                                     | Validated              | Li et al. (2024); Qian et al. (2024)                                                                                                                          | Critical path and sampling ceiling, as 6.1 and 6.2 predict                                                                  |
+| Role-play scaffolds and fixed workflows                           | Saturated              | CAMEL; ChatDev; AutoGen                                                                                                                                       | Generation at design time, nothing evolving, little left to learn from role choice                                          |
+| Debate among instances of one model                               | Saturated              | Huang et al. (2023); Wang et al. (2024a); Zhang et al. (2025g)                                                                                                | Often fails to beat strong baselines in the cited evaluations; compare with a simulator matching per-call contexts (6.1)    |
+| Prompt optimization                                               | Saturated              | DSPy; OPRO; PromptBreeder                                                                                                                                     | Prompts optimized on a benchmark distribution                                                                               |
+| Offline topology search                                           | Saturated              | DyLAN; GPTSwarm; ADAS; AFlow; MaAS; AgentSquare                                                                                                               | Searches prompts and organization within a benchmark-defined design space (4.1)                                             |
+| Tasks as objects with contracts, verifiers, dependencies, budgets | Open                   | No system                                                                                                                                                     | The primitive the framework says is decisive                                                                                |
+| Visibility as a design variable; reuse rate of stored memory      | Open                   | Memory systems are single-agent; no reuse rates reported                                                                                                      | Which runtime sees which memory on which task has barely been posed                                                         |
+| Capacity lifecycle: signature, record, failure boundary           | Open                   | Voyager (Wang et al., 2023) is a store, not a system                                                                                                          | Without records, matching runs on intuition                                                                                 |
+| Runtime matching per task                                         | Open                   | Absent; only offline search exists                                                                                                                            | The market of 6.3                                                                                                           |
+| Decentralized generation via a shared task list                   | Open                   | No controlled study; FunSearch and AI Scientist are suggestive                                                                                                | 6.7                                                                                                                         |
+| Strict evolution                                                  | Open                   | DGM (Zhang et al., 2025e) closest; continual harnesses report no held-out results                                                                             | Criteria 4, 5, 7 of 6.6 unmet everywhere                                                                                    |
+| Credit assignment                                                 | Open                   | Zhang et al. (2025f): responsible agent identified under 20% of the time; MAST (Cemri et al., 2025) supplies vocabulary                                       | Attribution needs the task object's provenance and failure fields                                                           |
+| Evaluation                                                        | Open                   | Cost-aware leaderboards exist (Kapoor et al., 2025); no benchmark with known dependency structure, graded verifiers, controlled relevant-information fraction | Without it, architecture comparisons confound organization with sample count, model, context size, verifier and parallelism |
+
+---
+
+## References
+
+Amdahl, G. M. (1967). Validity of the single processor approach to achieving large scale computing capabilities. _AFIPS Spring Joint Computer Conference_, 483–485.
+
+Anthropic (2025a). How we built our multi-agent research system. Anthropic Engineering Blog.
+
+Bernstein, D. S., Givan, R., Immerman, N., and Zilberstein, S. (2002). The complexity of decentralized control of Markov decision processes. _Mathematics of Operations Research_, 27(4), 819–840.
+
+Brooks, F. P. (1975). _The Mythical Man-Month_. Addison-Wesley.
+
+Brown, B., Juravsky, J., Ehrlich, R., Clark, R., Le, Q. V., Ré, C., and Mirhoseini, A. (2024). Large language monkeys: Scaling inference compute with repeated sampling. [arXiv:2407.21787](https://arxiv.org/abs/2407.21787).
+
+Cemri, M., et al. (2025). Why do multi-agent LLM systems fail? _NeurIPS 2025 Datasets and Benchmarks_. [arXiv:2503.13657](https://arxiv.org/abs/2503.13657).
+
+Chen, M., et al. (2021). Evaluating large language models trained on code. [arXiv:2107.03374](https://arxiv.org/abs/2107.03374).
+
+Chhikara, P., Khant, D., Aryan, S., Singh, T., and Yadav, D. (2025). Mem0: Building production-ready AI agents with scalable long-term memory. [arXiv:2504.19413](https://arxiv.org/abs/2504.19413).
+
+Coase, R. H. (1937). The nature of the firm. _Economica_, 4(16), 386–405.
+
+Cognition (2025). Don't build multi-agents. Cognition Engineering Blog.
+
+Das, A., Gervet, T., Romoff, J., Batra, D., Parikh, D., Rabbat, M., and Pineau, J. (2019). TarMAC: Targeted multi-agent communication. _ICML 2019_.
+
+Erman, L. D., Hayes-Roth, F., Lesser, V. R., and Reddy, D. R. (1980). The Hearsay-II speech-understanding system. _ACM Computing Surveys_, 12(2), 213–253.
+
+Erol, K., Hendler, J., and Nau, D. S. (1994). HTN planning: Complexity and expressivity. _AAAI_, 1123–1128.
+
+Fernando, C., Banarse, D., Michalewski, H., Osindero, S., and Rocktäschel, T. (2023). Promptbreeder: Self-referential self-improvement via prompt evolution. [arXiv:2309.16797](https://arxiv.org/abs/2309.16797).
+
+Foerster, J., Assael, Y. M., de Freitas, N., and Whiteson, S. (2016). Learning to communicate with deep multi-agent reinforcement learning. _NeurIPS 2016_.
+
+Fourney, A., et al. (2024). Magentic-One: A generalist multi-agent system for solving complex tasks. [arXiv:2411.04468](https://arxiv.org/abs/2411.04468).
+
+Galbraith, J. R. (1974). Organization design: An information processing view. _Interfaces_, 4(3), 28–36.
+
+Gelernter, D. (1985). Generative communication in Linda. _ACM TOPLAS_, 7(1), 80–112.
+
+Gerkey, B. P., and Matarić, M. J. (2004). A formal analysis and taxonomy of task allocation in multi-robot systems. _IJRR_, 23(9), 939–954.
+
+Hammond, L., et al. (2025). Multi-agent risks from advanced AI. Cooperative AI Foundation. [arXiv:2502.14143](https://arxiv.org/abs/2502.14143).
+
+Hewitt, C., Bishop, P., and Steiger, R. (1973). A universal modular ACTOR formalism for artificial intelligence. _IJCAI_, 235–245.
+
+Holland, J. H. (1975). _Adaptation in Natural and Artificial Systems_. University of Michigan Press.
+
+Hong, L., and Page, S. E. (2004). Groups of diverse problem solvers can outperform groups of high-ability problem solvers. _PNAS_, 101(46), 16385–16389.
+
+Hong, S., et al. (2023). MetaGPT: Meta programming for a multi-agent collaborative framework. _ICLR 2024_. [arXiv:2308.00352](https://arxiv.org/abs/2308.00352).
+
+Hu, S., Lu, C., and Clune, J. (2024). Automated design of agentic systems. _ICLR 2025_. [arXiv:2408.08435](https://arxiv.org/abs/2408.08435).
+
+Huang, J., et al. (2023). Large language models cannot self-correct reasoning yet. _ICLR 2024_. [arXiv:2310.01798](https://arxiv.org/abs/2310.01798).
+
+Hughes, E., et al. (2024). Open-endedness is essential for artificial superhuman intelligence. _ICML 2024_. [arXiv:2406.04268](https://arxiv.org/abs/2406.04268).
+
+Kapoor, S., Stroebl, B., Siegel, Z. S., Nadgir, N., and Narayanan, A. (2024). AI agents that matter. _TMLR_. [arXiv:2407.01502](https://arxiv.org/abs/2407.01502).
+
+Kapoor, S., et al. (2025). Holistic Agent Leaderboard: The Missing Infrastructure for AI Agent Evaluation. [arXiv:2510.11977v1](https://arxiv.org/abs/2510.11977v1).
+
+Khattab, O., et al. (2023). DSPy: Compiling declarative language model calls into self-improving pipelines. _ICLR 2024_. [arXiv:2310.03714](https://arxiv.org/abs/2310.03714).
+
+Kirkpatrick, J., et al. (2017). Overcoming catastrophic forgetting in neural networks. _PNAS_, 114(13), 3521–3526.
+
+Krogh, A., and Vedelsby, J. (1995). Neural network ensembles, cross validation, and active learning. _NeurIPS 7_, 231–238.
+
+Lehman, J., and Stanley, K. O. (2011). Abandoning objectives: Evolution through the search for novelty alone. _Evolutionary Computation_, 19(2), 189–223.
+
+Li, G., Hammoud, H. A. A. K., Itani, H., Khizbullin, D., and Ghanem, B. (2023). CAMEL: Communicative agents for "mind" exploration of large language model society. _NeurIPS 2023_. [arXiv:2303.17760](https://arxiv.org/abs/2303.17760).
+
+Li, J., Zhang, Q., Yu, Y., Fu, Q., and Ye, D. (2024). More agents is all you need. _TMLR_. [arXiv:2402.05120](https://arxiv.org/abs/2402.05120).
+
+Liu, N. F., et al. (2023). Lost in the middle: How language models use long contexts. _TACL_, 12, 157–173.
+
+Liu, Z., Zhang, Y., Li, P., Liu, Y., and Yang, D. (2023b). A dynamic LLM-powered agent network for task-oriented agent collaboration. _COLM 2024_. [arXiv:2310.02170](https://arxiv.org/abs/2310.02170).
+
+Lu, C., et al. (2024). The AI Scientist: Towards fully automated open-ended scientific discovery. [arXiv:2408.06292](https://arxiv.org/abs/2408.06292).
+
+Malone, T. W., and Crowston, K. (1994). The interdisciplinary study of coordination. _ACM Computing Surveys_, 26(1), 87–119.
+
+McCloskey, M., and Cohen, N. J. (1989). Catastrophic interference in connectionist networks. _Psychology of Learning and Motivation_, 24, 109–165.
+
+Mouret, J.-B., and Clune, J. (2015). Illuminating search spaces by mapping elites. [arXiv:1504.04909](https://arxiv.org/abs/1504.04909).
+
+Nii, H. P. (1986). Blackboard systems. _AI Magazine_, 7(2), 38–53.
+
+Packer, C., et al. (2023). MemGPT: Towards LLMs as operating systems. [arXiv:2310.08560](https://arxiv.org/abs/2310.08560).
+
+Pan, S. J., and Yang, Q. (2010). A survey on transfer learning. _IEEE TKDE_, 22(10), 1345–1359.
+
+Park, J. S., et al. (2023). Generative agents: Interactive simulacra of human behavior. _UIST 2023_. [arXiv:2304.03442](https://arxiv.org/abs/2304.03442).
+
+Patil, S. G., Zhang, T., Wang, X., and Gonzalez, J. E. (2023). Gorilla: Large language model connected with massive APIs. [arXiv:2305.15334](https://arxiv.org/abs/2305.15334).
+
+Prime Intellect (2026). Prime Agent: A self-improving RLM agent for coding workflows and long-running autonomous tasks. [Official introduction](https://www.primeintellect.ai/blog/prime-agent), August 5, 2026; [repository snapshot](https://github.com/PrimeIntellect-ai/prime-agent/tree/9c54a35dac3a2ad17910074d66664859ea175666), checked September 5, 2026.
+
+Qian, C., et al. (2023). ChatDev: Communicative agents for software development. _ACL 2024_. [arXiv:2307.07924](https://arxiv.org/abs/2307.07924).
+
+Qian, C., et al. (2024). Scaling large-language-model-based multi-agent collaboration. _ICLR 2025_. [arXiv:2406.07155](https://arxiv.org/abs/2406.07155).
+
+Qin, Y., et al. (2023). ToolLLM: Facilitating large language models to master 16000+ real-world APIs. _ICLR 2024_. [arXiv:2307.16789](https://arxiv.org/abs/2307.16789).
+
+Romera-Paredes, B., et al. (2024). Mathematical discoveries from program search with large language models. _Nature_, 625, 468–475.
+
+Sartre, J.-P. (1946). _L'existentialisme est un humanisme_. Nagel. (English: _Existentialism Is a Humanism_, Yale University Press, 2007.)
+
+Schick, T., et al. (2023). Toolformer: Language models can teach themselves to use tools. _NeurIPS 2023_. [arXiv:2302.04761](https://arxiv.org/abs/2302.04761).
+
+Shang, Y., et al. (2024). AgentSquare: Automatic LLM agent search in modular design space. _ACL 2025_. [arXiv:2410.06153](https://arxiv.org/abs/2410.06153).
+
+Shinn, N., et al. (2023). Reflexion: Language agents with verbal reinforcement learning. _NeurIPS 2023_. [arXiv:2303.11366](https://arxiv.org/abs/2303.11366).
+
+Si, C., Yang, D., and Hashimoto, T. (2024). Can LLMs generate novel research ideas? _ICLR 2025_. [arXiv:2409.04109](https://arxiv.org/abs/2409.04109).
+
+Simon, H. A. (1955). A behavioral model of rational choice. _Quarterly Journal of Economics_, 69(1), 99–118.
+
+Zhang, H., et al. (2025g). Stop Overvaluing Multi-Agent Debate — We Must Rethink Evaluation and Embrace Model Heterogeneity. [arXiv:2502.08788v3](https://arxiv.org/abs/2502.08788v3).
+
+Smith, R. G. (1980). The contract net protocol. _IEEE Transactions on Computers_, C-29(12), 1104–1113.
+
+Snell, C., Lee, J., Xu, K., and Kumar, A. (2024). Scaling LLM test-time compute optimally can be more effective than scaling model parameters. [arXiv:2408.03314](https://arxiv.org/abs/2408.03314).
+
+Sukhbaatar, S., Szlam, A., and Fergus, R. (2016). Learning multiagent communication with backpropagation. _NeurIPS 2016_.
+
+Theraulaz, G., and Bonabeau, E. (1999). A brief history of stigmergy. _Artificial Life_, 5(2), 97–116.
+
+Tishby, N., Pereira, F. C., and Bialek, W. (1999). The information bottleneck method. _Allerton Conference_, 368–377.
+
+Wang, G., et al. (2023). Voyager: An open-ended embodied agent with large language models. _TMLR_. [arXiv:2305.16291](https://arxiv.org/abs/2305.16291).
+
+Wang, J., et al. (2024d). Mixture-of-agents enhances large language model capabilities. _ICLR 2025_. [arXiv:2406.04692](https://arxiv.org/abs/2406.04692).
+
+Wang, Q., Wang, Z., Su, Y., Tong, H., and Song, Y. (2024a). Rethinking the bounds of LLM reasoning: Are multi-agent discussions the key? _ACL 2024_. [arXiv:2402.18272](https://arxiv.org/abs/2402.18272).
+
+Wang, R., Lehman, J., Clune, J., and Stanley, K. O. (2019). POET: Endlessly generating increasingly complex and diverse learning environments and their solutions. [arXiv:1901.01753](https://arxiv.org/abs/1901.01753).
+
+Wang, X., et al. (2023). Self-consistency improves chain of thought reasoning in language models. _ICLR 2023_. [arXiv:2203.11171](https://arxiv.org/abs/2203.11171).
+
+Wang, Z. Z., Mao, J., Fried, D., and Neubig, G. (2024c). Agent workflow memory. [arXiv:2409.07429](https://arxiv.org/abs/2409.07429).
+
+Wellman, M. P. (1993). A market-oriented programming environment and its application to distributed multicommodity flow problems. _JAIR_, 1, 1–23.
+
+Williamson, O. E. (1975). _Markets and Hierarchies_. Free Press.
+
+Wu, Q., et al. (2023). AutoGen: Enabling next-gen LLM applications via multi-agent conversation. _COLM 2024_. [arXiv:2308.08155](https://arxiv.org/abs/2308.08155).
+
+Xia, C. S., Deng, Y., Dunn, S., and Zhang, L. (2024). Agentless: Demystifying LLM-based software engineering agents. [arXiv:2407.01489](https://arxiv.org/abs/2407.01489).
+
+Xu, W., et al. (2025). A-MEM: Agentic memory for LLM agents. [arXiv:2502.12110](https://arxiv.org/abs/2502.12110).
+
+Yang, C., et al. (2023). Large language models as optimizers. _ICLR 2024_. [arXiv:2309.03409](https://arxiv.org/abs/2309.03409).
+
+Yang, J., et al. (2024). SWE-agent: Agent-computer interfaces enable automated software engineering. _NeurIPS 2024_. [arXiv:2405.15793](https://arxiv.org/abs/2405.15793).
+
+Yao, S., et al. (2022). ReAct: Synergizing reasoning and acting in language models. _ICLR 2023_. [arXiv:2210.03629](https://arxiv.org/abs/2210.03629).
+
+Yao, S., et al. (2023). Tree of thoughts: Deliberate problem solving with large language models. _NeurIPS 2023_. [arXiv:2305.10601](https://arxiv.org/abs/2305.10601).
+
+Yao, S., Shinn, N., Razavi, P., and Narasimhan, K. (2024). τ-bench: A benchmark for tool-agent-user interaction in real-world domains. [arXiv:2406.12045](https://arxiv.org/abs/2406.12045).
+
+Zhang, A., Kraska, T., and Khattab, O. (2025a). Recursive language models. [arXiv:2512.24601](https://arxiv.org/abs/2512.24601).
+
+Zhang, Q., et al. (2025b). Agentic context engineering: Evolving contexts for self-improving language models. _ICLR 2026_. [arXiv:2510.04618](https://arxiv.org/abs/2510.04618).
+
+Zhang, J., et al. (2025c). AFlow: Automating agentic workflow generation. _ICLR 2025_. [arXiv:2410.10762](https://arxiv.org/abs/2410.10762).
+
+Zhang, G., et al. (2025d). Multi-agent architecture search via agentic supernet. _ICML 2025_. [arXiv:2502.04180](https://arxiv.org/abs/2502.04180).
+
+Zhang, J., Hu, S., Lu, C., Lange, R., and Clune, J. (2025e). Darwin Gödel Machine: Open-ended evolution of self-improving agents. _ICLR 2026_. [arXiv:2505.22954](https://arxiv.org/abs/2505.22954).
+
+Zhang, S., et al. (2025f). Which agent causes task failures and when? _ICML 2025_. [arXiv:2505.00212](https://arxiv.org/abs/2505.00212).
+
+Zhuge, M., et al. (2024). GPTSwarm: Language agents as optimizable graphs. _ICML 2024_. [arXiv:2402.16823](https://arxiv.org/abs/2402.16823).

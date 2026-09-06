@@ -1,0 +1,510 @@
+.tec-viz {
+  --tec-ink: var(--global-text-color);
+  --tec-muted: var(--global-text-color-light);
+  --tec-paper: var(--global-bg-color);
+  --tec-line: var(--global-divider-color);
+  --tec-accent: var(--global-theme-color);
+  --tec-wash: color-mix(in srgb, var(--tec-accent) 7%, var(--tec-paper));
+  --tec-secondary: light-dark(#246b67, #8bccc5);
+  --tec-positive: light-dark(#286c49, #92d5ae);
+  margin: 2rem 0 0 !important;
+  border-block: 1px solid var(--tec-line);
+  padding: 1.5rem 0;
+  color: var(--tec-ink);
+  font-family: var(--font-family-sans, sans-serif);
+  font-size: 14px;
+  line-height: 1.5;
+  isolation: isolate;
+}
+.tec-viz *,
+.tec-viz *::before,
+.tec-viz *::after {
+  box-sizing: border-box;
+}
+.tec-viz figcaption {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0 0 1.25rem;
+  text-align: left;
+  color: var(--tec-ink);
+}
+.tec-viz figcaption strong {
+  font-size: clamp(1.3rem, 3vw, 1.7rem);
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+  font-weight: 600;
+}
+.tec-viz figcaption > span:last-child {
+  color: var(--tec-muted);
+  font-size: 14px;
+}
+.tec-viz .tec-eyebrow {
+  display: block;
+  color: var(--tec-accent);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1.5;
+  text-transform: uppercase;
+}
+.tec-viz button {
+  font: inherit;
+  line-height: 1.35;
+  min-height: 44px;
+  padding: 0.55rem 0.8rem;
+  color: var(--tec-ink);
+  border: 1px solid var(--tec-line);
+  border-radius: 6px;
+  background: var(--tec-paper);
+  cursor: pointer;
+  transition:
+    background 180ms,
+    border-color 180ms;
+}
+.tec-viz button:hover {
+  border-color: var(--tec-accent);
+}
+.tec-viz button:focus-visible,
+.tec-viz input:focus-visible {
+  outline: 2px solid var(--tec-accent);
+  outline-offset: 3px;
+}
+.tec-viz button[aria-pressed='true'] {
+  background: var(--tec-wash);
+  border-color: var(--tec-accent);
+  color: var(--tec-accent);
+}
+.tec-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-bottom: 1.25rem;
+}
+.tec-viz .tec-reading {
+  padding: 0.9rem 1rem;
+  margin: 1rem 0 0;
+  border-inline-start: 2px solid var(--tec-accent);
+  background: var(--tec-wash);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 5rem;
+}
+.tec-triple {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  align-items: center;
+  column-gap: 2rem;
+}
+.tec-essence {
+  display: grid;
+  gap: 0.65rem;
+  grid-column: 1;
+}
+.tec-primitive {
+  border: 1px solid var(--tec-line);
+  padding: 1rem;
+  border-radius: 8px;
+  transition:
+    border-color 220ms,
+    background 220ms;
+}
+.tec-primitive b {
+  display: block;
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+.tec-primitive span {
+  display: block;
+  color: var(--tec-muted);
+  font-size: 12px;
+}
+.tec-viz .is-active {
+  border-color: var(--tec-accent);
+  background: var(--tec-wash);
+}
+.tec-binding {
+  grid-column: 1;
+  display: grid;
+  text-align: center;
+  gap: 0.2rem;
+  margin-top: 0.5rem;
+}
+.tec-binding > span:first-child {
+  font-size: 1.8rem;
+  color: var(--tec-accent);
+  line-height: 1;
+}
+.tec-binding b {
+  font-size: 1.4rem;
+  font-weight: 500;
+}
+.tec-binding > span:last-child {
+  font-size: 12px;
+  color: var(--tec-muted);
+}
+.tec-environment {
+  grid-row: 1 / 3;
+  grid-column: 2;
+  border: 1px solid var(--tec-line);
+  border-radius: 10px;
+  padding: 0.75rem;
+  transition: background 220ms;
+}
+.tec-environment > b {
+  display: block;
+  font-size: 1.25rem;
+  padding-block: 0.25rem 0.5rem;
+}
+.tec-layer {
+  border: 1px solid var(--tec-line);
+  border-radius: 6px;
+  padding: 0.55rem;
+  background: color-mix(in srgb, var(--tec-secondary) 5%, var(--tec-paper));
+  margin-top: 0.45rem;
+}
+.tec-layer > span {
+  font-size: 12px;
+}
+.tec-contexts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem;
+  margin-top: 0.65rem;
+}
+.tec-contexts span {
+  padding: 0.6rem 0.25rem;
+  border: 1px solid var(--tec-secondary);
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+}
+.tec-policy {
+  display: block;
+  font-size: 12px;
+  margin-top: 0.6rem;
+  color: var(--tec-secondary);
+}
+.tec-step-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.tec-operator-track {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.45rem;
+}
+.tec-operator-track button {
+  text-align: left;
+  padding: 0.65rem;
+  min-width: 0;
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+}
+.tec-step-number {
+  color: var(--tec-muted);
+  font-size: 12px;
+}
+.tec-operator-track b {
+  font-size: 13px;
+}
+.tec-operator-track button > span:last-child {
+  font-size: 11px;
+  color: var(--tec-muted);
+}
+.tec-operator-track button:last-child {
+  border-style: dashed;
+}
+.tec-current-step {
+  background: var(--tec-wash);
+  padding: 1rem;
+  margin-top: 1rem;
+  min-height: 8rem;
+  border-radius: 6px;
+}
+.tec-current-step p {
+  margin: 0.35rem 0 0;
+  font-size: 14px;
+}
+.tec-evolve-gate {
+  margin-top: 1rem;
+  border: 1px dashed var(--tec-line);
+  padding: 1rem;
+  border-radius: 6px;
+}
+.tec-evolve-gate.is-current {
+  border-color: var(--tec-accent);
+}
+.tec-evolve-gate label {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 44px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.tec-evolve-gate input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  accent-color: var(--tec-accent);
+}
+.tec-evolve-gate p {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 14px;
+}
+.tec-viz small {
+  font-size: 12px;
+  color: var(--tec-muted);
+}
+.tec-gate-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  background: var(--tec-accent);
+}
+.tec-gate-dot.is-open {
+  background: var(--tec-positive);
+}
+.tec-projection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+.tec-projection dl {
+  margin: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+.tec-projection dl > div {
+  padding: 0.8rem 0.85rem;
+  border-inline-start: 2px solid var(--tec-accent);
+  background: var(--tec-wash);
+}
+.tec-projection dt {
+  font-size: 12px;
+  color: var(--tec-muted);
+  font-weight: 400;
+  margin: 0;
+}
+.tec-projection dd {
+  margin: 0.25rem 0 0;
+  font-size: 14px;
+}
+.tec-graph svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-width: 360px;
+  margin: auto;
+  overflow: visible;
+}
+.tec-graph svg circle {
+  fill: var(--tec-wash);
+  stroke: var(--tec-accent);
+  stroke-width: 1.5;
+  transition:
+    cx 350ms,
+    cy 350ms;
+}
+.tec-graph svg text {
+  fill: var(--tec-ink);
+  font-size: 12px;
+  transition:
+    x 350ms,
+    y 350ms;
+}
+.tec-graph svg line {
+  stroke: var(--tec-accent);
+  stroke-width: 1.5;
+  transition:
+    x1 350ms,
+    y1 350ms,
+    x2 350ms,
+    y2 350ms;
+}
+.tec-graph svg marker path {
+  fill: var(--tec-accent);
+}
+.tec-graph .tec-specialist circle {
+  stroke: var(--tec-secondary);
+  stroke-dasharray: 4 2;
+  fill: color-mix(in srgb, var(--tec-secondary) 9%, var(--tec-paper));
+}
+.tec-graph-key {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  color: var(--tec-muted);
+}
+.tec-worker-control {
+  display: block;
+  margin: 0 0 1.25rem;
+}
+.tec-worker-control > span {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tec-worker-control b {
+  color: var(--tec-accent);
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+.tec-worker-control input {
+  width: 100%;
+  min-height: 32px;
+  accent-color: var(--tec-accent);
+  margin: 0;
+}
+.tec-timeline {
+  --tec-label-width: 72px;
+  padding-right: 0.5rem;
+}
+.tec-axis {
+  position: relative;
+  margin-left: var(--tec-label-width);
+  height: 24px;
+  color: var(--tec-muted);
+  font-size: 12px;
+}
+.tec-axis span {
+  position: absolute;
+  transform: translateX(-50%);
+}
+.tec-lane {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+}
+.tec-lane-label {
+  flex: 0 0 var(--tec-label-width);
+  font-size: 12px;
+  color: var(--tec-muted);
+}
+.tec-lane-track {
+  position: relative;
+  flex: 1;
+  height: 32px;
+  border-block-end: 1px solid var(--tec-line);
+  background: repeating-linear-gradient(90deg, var(--tec-line) 0 1px, transparent 1px 25%);
+}
+.tec-task-block {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  border: 2px solid var(--tec-paper);
+  border-radius: 5px;
+  background: var(--tec-accent);
+  color: var(--tec-paper);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  animation: tec-arrive 450ms backwards;
+}
+.tec-time-label {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  color: var(--tec-muted);
+  margin-top: 0.5rem;
+}
+.tec-results {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  border-block: 1px solid var(--tec-line);
+  padding: 0.8rem 0;
+}
+.tec-results > span {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: var(--tec-muted);
+}
+.tec-results b {
+  font-size: 1.6rem;
+  color: var(--tec-ink);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.tec-viz .tec-replay {
+  margin-top: 1rem;
+}
+.tec-assumptions {
+  display: block;
+  margin-top: 0.75rem;
+}
+@keyframes tec-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 560px) {
+  .tec-triple,
+  .tec-projection {
+    grid-template-columns: 1fr;
+  }
+  .tec-essence {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .tec-essence > .tec-eyebrow {
+    grid-column: 1 / -1;
+  }
+  .tec-primitive {
+    padding: 0.75rem;
+  }
+  .tec-binding {
+    margin: 0.75rem 0;
+  }
+  .tec-environment {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .tec-operator-track {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .tec-operator-track button:last-child {
+    grid-column: 1 / -1;
+    grid-template-columns: auto 1fr 1fr;
+    align-items: center;
+  }
+  .tec-operator-track button > span:last-child {
+    font-size: 12px;
+  }
+  .tec-results {
+    gap: 0.5rem;
+  }
+  .tec-results b {
+    font-size: 1.35rem;
+  }
+  .tec-results small {
+    display: block;
+  }
+  .tec-viz .tec-reading {
+    min-height: 0;
+  }
+  .tec-current-step {
+    min-height: 11rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tec-viz *,
+  .tec-viz *::before,
+  .tec-viz *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

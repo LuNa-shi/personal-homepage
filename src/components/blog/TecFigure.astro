@@ -1,0 +1,34 @@
+---
+import { site } from '@config/site';
+
+import TecExplorer from './TecExplorer';
+
+interface Props {
+  mode: 'triple' | 'operators' | 'topology' | 'parallel';
+  fallback?: string;
+  alt?: string;
+}
+const { mode, fallback, alt } = Astro.props;
+---
+
+{
+  site.features.tecVisuals ? (
+    <TecExplorer mode={mode} copy={site.tec} client:visible />
+  ) : fallback ? (
+    <img src={`${site.base}${fallback}`} alt={alt} loading="lazy" />
+  ) : null
+}
+{
+  fallback && site.features.tecVisuals && (
+    <p class="tec-static-link">
+      <a href={`${site.base}${fallback}`}>{site.tec.fullSize}</a>
+    </p>
+  )
+}
+
+<style>
+  .tec-static-link {
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+  }
+</style>

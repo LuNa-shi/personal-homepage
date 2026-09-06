@@ -141,7 +141,7 @@ Add translated content as separate entries with `lang`, `translationKey`, and op
 
 ```yaml
 ---
-title: "中文标题"
+title: '中文标题'
 date: 2026-06-01
 lang: zh
 translationKey: original-post-key
@@ -865,3 +865,16 @@ NEWS_WORKSPACE=/path/to/news yarn digest:generate -- --date 2026-07-01 --lang zh
 ```
 
 Before publishing, edit the generated MDX so the overview is scannable, core posts get detailed explanation, unverified claims are labeled, and public media cards support the text.
+
+### Interactive TEC article figures
+
+`site.features.tecVisuals` enables the article-embedded TEC illustrations. Their titles,
+labels and explanatory copy live in `site.tec`. An MDX article can import
+`src/components/blog/TecFigure.astro` and select `mode="triple"`, `"operators"`,
+`"topology"` or `"parallel"`. These components hydrate only when visible.
+
+The first three figures retain a full-size static diagram link; disabling the flag
+uses the supplied `fallback` image. The scheduling figure is a teaching model with
+four unit-duration tasks, explicit dependencies and zero overhead, not benchmark
+evidence. Animation respects reduced-motion preferences; sequence playback starts
+only on reader request. Controls support keyboard and touch.
